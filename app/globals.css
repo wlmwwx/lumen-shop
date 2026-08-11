@@ -1,26 +1,110 @@
 @import "tailwindcss";
 
+@theme {
+  --color-background: #ffffff;
+  --color-foreground: #1a1a1a;
+  --color-muted: #6b6b6b;
+  --color-muted-foreground: #6b6b6b;
+  --color-border: #e5e5e5;
+  --color-surface: #fafafa;
+  --color-accent: #1a1a1a;
+  --color-accent-hover: #333333;
+  --color-sale: #c5283d;
+  --color-star: #f0a500;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans SC", sans-serif;
+}
+
 :root {
   --background: #ffffff;
-  --foreground: #171717;
+  --foreground: #1a1a1a;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+::selection {
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+/* 通用工具类 */
+.container-shop {
+  @apply mx-auto w-full max-w-[1440px] px-4 sm:px-6 lg:px-10;
+}
+
+.btn-primary {
+  @apply inline-flex items-center justify-center gap-2 rounded-full bg-foreground px-7 py-3 text-sm font-medium tracking-wide text-white transition-all duration-300 hover:bg-accent-hover hover:shadow-lg active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-outline {
+  @apply inline-flex items-center justify-center gap-2 rounded-full border border-foreground/20 px-7 py-3 text-sm font-medium tracking-wide transition-all duration-300 hover:border-foreground hover:bg-foreground hover:text-white active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.input-shop {
+  @apply w-full rounded-md border border-border bg-white px-4 py-2.5 text-sm outline-none transition-all duration-200 placeholder:text-muted/70 focus:border-foreground focus:ring-2 focus:ring-foreground/10;
+}
+
+.label-shop {
+  @apply mb-1.5 block text-xs font-medium uppercase tracking-wider text-muted;
+}
+
+.card-shop {
+  @apply overflow-hidden rounded-lg border border-border bg-white;
+}
+
+/* 页面过渡淡入 */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s ease-out both;
+}
+
+/* 抽屉滑入 */
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* 骨架屏闪烁 */
+@keyframes shimmer {
+  0% {
+    background-position: -400px 0;
+  }
+  100% {
+    background-position: 400px 0;
+  }
+}
+
+.shimmer {
+  background: linear-gradient(90deg, #f3f3f3 25%, #e9e9e9 37%, #f3f3f3 63%);
+  background-size: 800px 100%;
+  animation: shimmer 1.2s infinite linear;
 }
