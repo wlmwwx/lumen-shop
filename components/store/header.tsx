@@ -50,7 +50,7 @@ export function Header({
   ];
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md">
+    <header className="sticky top-0 z-40 bg-white">
       {/* 公告栏 */}
       <div className="bg-foreground py-2 text-center text-[11px] tracking-wider text-white">
         {tc("freeShipping")}

@@ -63,6 +63,22 @@ body {
   @apply overflow-hidden rounded-lg border border-border bg-white;
 }
 
+/* 下拉面板淡入 */
+@keyframes fade-in-down {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.16s ease-out both;
+}
+
 /* 页面过渡淡入 */
 @keyframes fade-up {
   from {

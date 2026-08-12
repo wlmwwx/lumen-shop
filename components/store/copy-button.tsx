@@ -8,27 +8,31 @@ export function CopyButton({
   label,
   copiedLabel,
   className,
+  copyCurrentUrl = false,
 }: {
-  value: string;
+  value?: string;
   label: string;
   copiedLabel: string;
   className?: string;
+  /** 为 true 时复制当前浏览器地址（用于分享筛选/排序状态），忽略 value */
+  copyCurrentUrl?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
+    const text = copyCurrentUrl ? window.location.href : (value ?? "");
     const flashCopied = () => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1600);
     };
 
     try {
-      await navigator.clipboard.writeText(value);
+      await navigator.clipboard.writeText(text);
       flashCopied();
     } catch {
       // 剪贴板不可用时（非 https/iframe）回退到选中文本
       const ta = document.createElement("textarea");
-      ta.value = value;
+      ta.value = text;
       ta.setAttribute("readonly", "");
       ta.style.position = "fixed";
       ta.style.opacity = "0";

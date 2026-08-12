@@ -5,10 +5,18 @@ import { prisma } from "@/lib/db";
 import { Link } from "@/i18n/navigation";
 import { ProductCard, type CardProduct } from "@/components/store/product-card";
 import { PriceFilter } from "@/components/store/price-filter";
+import { CopyButton } from "@/components/store/copy-button";
+import { SortDropdown, type SortOption } from "@/components/store/sort-dropdown";
 import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 12;
 const SORTS = ["featured", "newest", "price-asc", "price-desc"] as const;
+const SORT_KEYS: Record<(typeof SORTS)[number], string> = {
+  featured: "featured",
+  newest: "newest",
+  "price-asc": "priceAsc",
+  "price-desc": "priceDesc",
+};
 
 export const metadata: Metadata = { title: "全部商品" };
 
@@ -94,6 +102,13 @@ export default async function ProductsPage({
     return qs ? `/products?${qs}` : "/products";
   };
 
+  // 排序选项：服务端预构建链接（URL 驱动，后退/前进/分享链接均兼容）
+  const sortOptions: SortOption[] = SORTS.map((s) => ({
+    value: s,
+    label: t(SORT_KEYS[s]),
+    href: buildHref({ sort: s === "featured" ? undefined : s, page: 1 }),
+  }));
+
   return (
     <div className="container-shop py-12">
       {/* 页头 */}
@@ -152,7 +167,12 @@ export default async function ProductsPage({
           <PriceFilter
             min={min}
             max={max}
-            labels={{ min: t("min"), max: t("max"), apply: t("apply") }}
+            labels={{
+              min: t("min"),
+              max: t("max"),
+              apply: t("apply"),
+              priceRange: t("priceRange"),
+            }}
           />
 
           {(category || q || min !== undefined || max !== undefined) && (
@@ -169,22 +189,17 @@ export default async function ProductsPage({
         <div>
           {/* 排序 */}
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3 border-b border-border pb-4">
-            <div className="flex flex-wrap gap-2">
-              {SORTS.map((s) => (
-                <Link
-                  key={s}
-                  href={buildHref({ sort: s === "featured" ? undefined : s, page: 1 })}
-                  className={cn(
-                    "rounded-full border px-4 py-1.5 text-xs transition-all duration-200",
-                    sort === s
-                      ? "border-foreground bg-foreground text-white"
-                      : "border-border text-muted hover:border-foreground/50 hover:text-foreground"
-                  )}
-                >
-                  {t(s)}
-                </Link>
-              ))}
-            </div>
+            <SortDropdown
+              current={sort}
+              options={sortOptions}
+              sortLabel={t("sort")}
+            />
+            {/* 分享当前排序/筛选状态 */}
+            <CopyButton
+              copyCurrentUrl
+              label={t("copyLink")}
+              copiedLabel={t("copiedLink")}
+            />
           </div>
 
           {products.length === 0 ? (

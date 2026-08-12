@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { useRouter, usePathname } from "@/i18n/navigation";
 
 export function PriceFilter({
@@ -10,12 +10,18 @@ export function PriceFilter({
 }: {
   min?: number;
   max?: number;
-  labels: { min: string; max: string; apply: string };
+  labels: { min: string; max: string; apply: string; priceRange: string };
 }) {
   const router = useRouter();
   const pathname = usePathname();
   const [minVal, setMinVal] = useState(min ? String(min) : "");
   const [maxVal, setMaxVal] = useState(max ? String(max) : "");
+
+  // 与 URL 状态保持同步（浏览器后退/前进、清除筛选时输入框不残留旧值）
+  useEffect(() => {
+    setMinVal(min ? String(min) : "");
+    setMaxVal(max ? String(max) : "");
+  }, [min, max]);
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -32,7 +38,7 @@ export function PriceFilter({
   return (
     <form onSubmit={submit}>
       <h3 className="mb-3 text-xs font-semibold uppercase tracking-widest text-foreground">
-        {labels.min === "最低" ? "价格区间" : "Price"}
+        {labels.priceRange}
       </h3>
       <div className="flex items-center gap-2">
         <input
