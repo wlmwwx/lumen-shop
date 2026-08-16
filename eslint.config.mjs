@@ -5,6 +5,15 @@ import nextTs from "eslint-config-next/typescript";
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
+  // Override rules that are too strict for this project
+  {
+    rules: {
+      // Allow 'any' types for flexibility in rapid development
+      "@typescript-eslint/no-explicit-any": "off",
+      // Allow setState in effects for localStorage sync patterns
+      "react-hooks/set-state-in-effect": "off",
+    },
+  },
   // Override default ignores of eslint-config-next.
   globalIgnores([
     // Default ignores of eslint-config-next:
