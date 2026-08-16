@@ -157,7 +157,7 @@ describe("buildTimeline", () => {
   });
 
   it("should handle empty events", () => {
-    const { eventByStatus } = buildTimeline({
+    const { eventByStatus, logistics } = buildTimeline({
       status: "PENDING",
       events: [],
     });
