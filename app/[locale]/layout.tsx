@@ -41,9 +41,16 @@ export default async function LocaleLayout({
     ? await getReviewInviteNotifications(user.id)
     : { items: [], unreadCount: 0 };
 
+  // suppressHydrationWarning：浏览器扩展（如沉浸式翻译/暗黑模式）会在 hydration 前向
+  // <html>/<body> 根元素注入 data-immersive-translate-* 等属性或 class，导致服务端 HTML
+  // 与客户端不一致的误报。仅作用于这两个根元素，不会掩盖其他真实的 hydration mismatch
+  // （子树的文本/结构不匹配警告照常报出）。
   return (
-    <html lang={locale}>
-      <body className="flex min-h-screen flex-col bg-background text-foreground antialiased">
+    <html lang={locale} suppressHydrationWarning>
+      <body
+        className="flex min-h-screen flex-col bg-background text-foreground antialiased"
+        suppressHydrationWarning
+      >
         <NextIntlClientProvider>
           <CartProvider>
             <Header

@@ -1,24 +1,26 @@
+// ============================================
+// LUMEN 拾光生活馆 - Prisma Schema (PostgreSQL)
+// ============================================
+// 用于 Vercel 等生产环境
+// 
+// 使用方法：
+// 1. 复制此文件替换 prisma/schema.prisma
+// 2. 运行 pnpm prisma generate
+// 3. 运行 pnpm prisma migrate deploy
+// ============================================
+
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-enum Role {
-  ADMIN
-  CUSTOMER
-}
-
-enum OrderStatus {
-  PENDING // 待支付
-  PAID // 已支付
-  SHIPPED // 已发货
-  COMPLETED // 已完成
-  CANCELLED // 已取消
-}
+// ============================================
+// Models
+// ============================================
 
 model User {
   id           String        @id @default(cuid())
@@ -215,4 +217,21 @@ model OrderEvent {
   createdAt DateTime    @default(now())
 
   @@index([orderId])
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING   // 待支付
+  PAID      // 已支付
+  SHIPPED   // 已发货
+  COMPLETED // 已完成
+  CANCELLED // 已取消
 }

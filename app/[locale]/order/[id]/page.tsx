@@ -107,6 +107,14 @@ export default async function OrderPage({
               {t("paymentMethod")}
             </p>
             <p className="mt-1.5 text-sm">{order.paymentMethod}</p>
+            {order.transactionId && (
+              <>
+                <p className="mt-3 text-xs uppercase tracking-widest text-muted">
+                  {t("transactionId")}
+                </p>
+                <p className="mt-1.5 font-mono text-sm">{order.transactionId}</p>
+              </>
+            )}
             <p className="mt-4 text-xs uppercase tracking-widest text-muted">
               {t("shipping")}
             </p>

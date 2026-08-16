@@ -5,9 +5,9 @@ import { redirect } from "next/navigation";
 import { getLocale } from "next-intl/server";
 import { prisma } from "@/lib/db";
 import { getSessionUser } from "@/lib/auth";
-import { checkoutSchema, reviewSchema } from "@/lib/validation";
+import { reviewSchema } from "@/lib/validation";
 import { paymentProvider } from "@/lib/payments";
-import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS } from "@/lib/constants";
+import { buildOrderFromForm } from "@/lib/order";
 import { randomOrderNumber } from "@/lib/utils";
 
 export type StoreActionState = { error?: string; orderId?: string } | undefined;
@@ -23,7 +23,8 @@ export async function placeOrderAction(
     return { error: "购物车数据异常" };
   }
 
-  const parsed = checkoutSchema.safeParse({
+  // 校验表单 + 数据库价格计算 + 库存检查（共享逻辑，PayPal 流程同样复用）
+  const built = await buildOrderFromForm({
     customerName: formData.get("customerName"),
     customerEmail: formData.get("customerEmail"),
     phone: formData.get("phone"),
@@ -35,49 +36,10 @@ export async function placeOrderAction(
     paymentMethod: formData.get("paymentMethod"),
     items: rawItems,
   });
-  if (!parsed.success) {
-    return { error: parsed.error.issues[0]?.message ?? "请检查表单" };
-  }
-  const data = parsed.data;
+  if (!built.ok) return { error: built.error };
+  const { data, orderItems, subtotal, shippingFee, method } = built;
 
   const user = await getSessionUser();
-  const method = SHIPPING_METHODS.find((m) => m.id === data.shippingMethod);
-  if (!method) return { error: "配送方式无效" };
-
-  // 以数据库价格为准，防止前端篡改
-  const productIds = data.items.map((i) => i.productId);
-  const products = await prisma.product.findMany({
-    where: { id: { in: productIds }, active: true },
-  });
-  const productMap = new Map(products.map((p) => [p.id, p]));
-
-  let subtotal = 0;
-  const orderItems: {
-    productId: string;
-    title: string;
-    variantInfo?: string;
-    price: number;
-    quantity: number;
-  }[] = [];
-  for (const item of data.items) {
-    const product = productMap.get(item.productId);
-    if (!product) return { error: "部分商品已下架，请刷新购物车" };
-    if (product.stock < item.quantity) {
-      return { error: `「${product.title}」库存不足（剩余 ${product.stock} 件）` };
-    }
-    subtotal += product.price * item.quantity;
-    orderItems.push({
-      productId: product.id,
-      title: product.title,
-      variantInfo: item.variant,
-      price: product.price,
-      quantity: item.quantity,
-    });
-  }
-
-  // 与前端一致的免邮逻辑：满 ¥299 标准配送免运费
-  const freeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
-  const shippingFee = method.id === "standard" && freeShipping ? 0 : method.fee;
 
   let orderId: string | null = null;
   try {
@@ -120,7 +82,7 @@ export async function placeOrderAction(
 
       await tx.order.update({
         where: { id: order.id },
-        data: { status: "PAID" },
+        data: { status: "PAID", transactionId: pay.transactionId },
       });
 
       // 记录状态事件：已支付

@@ -141,6 +141,7 @@
     "processing": "正在处理…",
     "backToCart": "返回购物车",
     "total": "应付总额",
+    "fillForm": "请先完整填写联系方式与收货地址",
     "secure": "演示环境使用模拟支付，不会产生真实扣款"
   },
   "Order": {
@@ -171,6 +172,7 @@
     "completed": "已完成",
     "cancelled": "已取消",
     "trackingNumber": "物流单号",
+    "transactionId": "支付交易号",
     "copy": "复制",
     "copied": "已复制",
     "writeReview": "写评价",

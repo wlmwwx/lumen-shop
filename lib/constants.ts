@@ -12,7 +12,7 @@ export const SHIPPING_METHODS = [
   { id: "pickup", name: "门店自提", nameEn: "Store pickup", fee: 0, eta: "当天", etaEn: "Same day" },
 ] as const;
 
-export const PAYMENT_METHODS = ["模拟支付 · 微信", "模拟支付 · 支付宝", "模拟支付 · 银行卡"] as const;
+export const PAYMENT_METHODS = ["模拟支付 · 微信", "模拟支付 · 支付宝", "模拟支付 · 银行卡", "PayPal"] as const;
 
 export const ORDER_STATUSES = ["PENDING", "PAID", "SHIPPED", "COMPLETED", "CANCELLED"] as const;
 

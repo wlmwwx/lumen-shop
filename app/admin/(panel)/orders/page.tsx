@@ -3,6 +3,7 @@ import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/format";
 import { formatDateTime } from "@/lib/utils";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { PaypalStatusBadge } from "@/components/admin/paypal-status-badge";
 import { ORDER_STATUSES } from "@/lib/constants";
 
 export const metadata = { title: "订单管理" };
@@ -114,7 +115,19 @@ export default async function AdminOrdersPage({
                   {formatPrice(o.total, "zh")}
                 </td>
                 <td className="px-5 py-3.5 text-xs text-[#8a8a86]">
-                  {o.paymentMethod.replace("模拟支付 · ", "")}
+                  <div className="flex flex-col gap-1">
+                    <span>
+                      {o.paymentMethod.replace("模拟支付 · ", "")}
+                    </span>
+                    {o.paymentMethod === "PayPal" && (
+                      <PaypalStatusBadge status={o.paypalStatus} />
+                    )}
+                    {o.transactionId && (
+                      <span className="font-mono text-[10px] text-[#b0b0ab]">
+                        {o.transactionId}
+                      </span>
+                    )}
+                  </div>
                 </td>
                 <td className="px-5 py-3.5">
                   <StatusBadge status={o.status} />

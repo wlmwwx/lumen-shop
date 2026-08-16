@@ -141,6 +141,7 @@
     "processing": "Processing…",
     "backToCart": "Back to cart",
     "total": "Total due",
+    "fillForm": "Please complete your contact and shipping details first",
     "secure": "Demo environment uses simulated payment — no real charge will occur"
   },
   "Order": {
@@ -171,6 +172,7 @@
     "completed": "Completed",
     "cancelled": "Cancelled",
     "trackingNumber": "Tracking number",
+    "transactionId": "Transaction ID",
     "copy": "Copy",
     "copied": "Copied",
     "writeReview": "Write a review",

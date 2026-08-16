@@ -1,10 +1,11 @@
 "use client";
 
-import { useActionState, useMemo, useState } from "react";
+import { useActionState, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Loader2, Lock } from "lucide-react";
 import { useCart } from "@/components/cart/cart-context";
 import { placeOrderAction } from "@/actions/store";
+import { PayPalCheckout, isPayPalEnabled, type PayPalOrderPayload } from "@/components/store/paypal-checkout";
 import { Link } from "@/i18n/navigation";
 import { formatPrice } from "@/lib/format";
 import { FREE_SHIPPING_THRESHOLD, SHIPPING_METHODS, PAYMENT_METHODS } from "@/lib/constants";
@@ -17,6 +18,35 @@ export function CheckoutForm({ locale }: { locale: "zh" | "en" }) {
   const [shippingId, setShippingId] = useState<string>("standard");
   const [payment, setPayment] = useState<string>(PAYMENT_METHODS[0]);
   const [state, formAction, pending] = useActionState(placeOrderAction, undefined);
+  const formRef = useRef<HTMLFormElement>(null);
+
+  // PayPal 支付：从当前表单字段收集结账数据，交给 /api/paypal/create-order
+  const paypalEnabled = isPayPalEnabled();
+  const isPaypal = payment === "PayPal";
+  const getPayPalPayload = (): PayPalOrderPayload | { error: string } => {
+    const form = formRef.current;
+    if (!form) return { error: "表单未就绪" };
+    const fd = new FormData(form);
+    const required = ["customerName", "customerEmail", "phone", "province", "city", "address"];
+    for (const key of required) {
+      if (!String(fd.get(key) ?? "").trim()) return { error: t("fillForm") };
+    }
+    return {
+      customerName: String(fd.get("customerName")),
+      customerEmail: String(fd.get("customerEmail")),
+      phone: String(fd.get("phone")),
+      province: String(fd.get("province")),
+      city: String(fd.get("city")),
+      address: String(fd.get("address")),
+      postalCode: String(fd.get("postalCode") ?? "") || undefined,
+      shippingMethod: shippingId,
+      items: items.map((it) => ({
+        productId: it.productId,
+        quantity: it.quantity,
+        variant: it.variant,
+      })),
+    };
+  };
 
   const freeShipping = subtotal >= FREE_SHIPPING_THRESHOLD;
   const shippingFee = useMemo(() => {
@@ -46,7 +76,7 @@ export function CheckoutForm({ locale }: { locale: "zh" | "en" }) {
   return (
     <div className="grid gap-12 lg:grid-cols-[1fr_400px]">
       {/* 左侧表单 */}
-      <form action={formAction} className="space-y-10">
+      <form ref={formRef} action={formAction} className="space-y-10">
         <input type="hidden" name="items" value={itemsJson} />
         <input type="hidden" name="shippingMethod" value={shippingId} />
         <input type="hidden" name="paymentMethod" value={payment} />
@@ -151,21 +181,33 @@ export function CheckoutForm({ locale }: { locale: "zh" | "en" }) {
             4 · {t("paymentMethod")}
           </h2>
           <div className="grid gap-3 sm:grid-cols-3">
-            {PAYMENT_METHODS.map((m) => (
-              <button
-                key={m}
-                type="button"
-                onClick={() => setPayment(m)}
-                className={cn(
-                  "flex items-center justify-center gap-2 rounded-xl border p-4 text-sm transition-all duration-200",
-                  payment === m
-                    ? "border-foreground bg-surface font-medium"
-                    : "border-border text-muted hover:border-foreground/40"
-                )}
-              >
-                {m.replace("模拟支付 · ", "")}
-              </button>
-            ))}
+            {PAYMENT_METHODS.map((m) => {
+              const isPayPalOption = m === "PayPal";
+              // PayPal 未配置时隐藏入口，避免出现点不了的选项
+              if (isPayPalOption && !paypalEnabled) return null;
+              return (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => setPayment(m)}
+                  className={cn(
+                    "flex items-center justify-center gap-2 rounded-xl border p-4 text-sm transition-all duration-200",
+                    payment === m
+                      ? "border-foreground bg-surface font-medium"
+                      : "border-border text-muted hover:border-foreground/40"
+                  )}
+                >
+                  {isPayPalOption ? (
+                    <span className="flex items-center gap-1.5">
+                      <span className="font-bold italic">Pay</span>
+                      <span className="font-bold">Pal</span>
+                    </span>
+                  ) : (
+                    m.replace("模拟支付 · ", "")
+                  )}
+                </button>
+              );
+            })}
           </div>
           <p className="mt-3 flex items-center gap-1.5 text-xs text-muted">
             <Lock size={12} /> {t("secure")}
@@ -178,15 +220,20 @@ export function CheckoutForm({ locale }: { locale: "zh" | "en" }) {
           </p>
         )}
 
-        <button type="submit" disabled={pending} className="btn-primary w-full !py-4 text-base">
-          {pending ? (
-            <>
-              <Loader2 size={18} className="animate-spin" /> {t("processing")}
-            </>
-          ) : (
-            t("placeOrder")
-          )}
-        </button>
+        {isPaypal ? (
+          // PayPal 两阶段支付：授权弹窗代替提交按钮
+          <PayPalCheckout getPayload={getPayPalPayload} />
+        ) : (
+          <button type="submit" disabled={pending} className="btn-primary w-full !py-4 text-base">
+            {pending ? (
+              <>
+                <Loader2 size={18} className="animate-spin" /> {t("processing")}
+              </>
+            ) : (
+              t("placeOrder")
+            )}
+          </button>
+        )}
       </form>
 
       {/* 右侧摘要 */}

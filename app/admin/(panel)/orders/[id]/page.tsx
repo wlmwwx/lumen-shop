@@ -5,6 +5,7 @@ import { formatPrice } from "@/lib/format";
 import { formatDateTime } from "@/lib/utils";
 import { cn } from "@/lib/utils";
 import { StatusBadge } from "@/components/admin/status-badge";
+import { PaypalStatusBadge } from "@/components/admin/paypal-status-badge";
 import { OrderStatusActions } from "@/components/admin/order-status-actions";
 import {
   TIMELINE_STAGES,
@@ -179,8 +180,23 @@ export default async function AdminOrderDetailPage({
             配送：{order.shippingMethod}
           </p>
           <p className="mt-1 text-sm text-[#8a8a86]">
-            支付：{order.paymentMethod}
+            支付：{order.paymentMethod.replace("模拟支付 · ", "")}
           </p>
+          {order.paymentMethod === "PayPal" && (
+            <div className="mt-2 flex items-center gap-2">
+              <PaypalStatusBadge status={order.paypalStatus} />
+              {order.transactionId && (
+                <span className="font-mono text-[11px] text-[#b0b0ab]">
+                  {order.transactionId}
+                </span>
+              )}
+            </div>
+          )}
+          {order.refundId && (
+            <p className="mt-1 text-xs text-[#a0a09b]">
+              退款单号：<span className="font-mono">{order.refundId}</span>
+            </p>
+          )}
         </div>
       </div>
 
