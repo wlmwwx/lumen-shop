@@ -4,11 +4,9 @@ import path from 'path'
 export default defineConfig({
   test: {
     globals: true,
-    environment: 'jsdom',
+    environment: 'node',
     setupFiles: ['./tests/setup.ts'],
-    include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
-    // Exclude tests with undici/jsdom compatibility issues
-    exclude: ['tests/payments.test.ts'],
+    include: ['tests/**/*.test.ts'],
     coverage: {
       reporter: ['text', 'html'],
       exclude: ['node_modules/', 'tests/setup.ts'],
