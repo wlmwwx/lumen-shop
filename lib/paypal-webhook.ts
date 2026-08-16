@@ -16,7 +16,6 @@
  */
 import "server-only";
 import { prisma } from "@/lib/db";
-import { cnyToUsd } from "@/lib/fx";
 import {
   parsePaypalEvent,
   type ParsedPaypalEvent,
@@ -183,9 +182,7 @@ async function recordEvent(
       data: {
         eventId: ev.eventId,
         eventType: ev.type,
-        resourceType: ev.resourceType,
         resourceId: ev.captureId ?? ev.paypalOrderId ?? null,
-        summary: ev.summary,
         rawPayload: JSON.stringify(body),
       },
     });
