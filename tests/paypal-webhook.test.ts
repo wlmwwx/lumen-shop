@@ -1,30 +1,8 @@
 /**
- * PayPal Webhook E2E 测试
- * 验证 webhook 处理逻辑与 Prisma 操作的集成
+ * PayPal Webhook 解析函数测试
  */
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect } from "vitest";
 import { parsePaypalEvent } from "@/lib/paypal-webhook-shared";
-// Mock prisma for future integration tests
-// import { prisma } from "@/lib/db";
-
-// Mock prisma
-// vi.mock("@/lib/db", () => ({
-  prisma: {
-    webhookEvent: {
-      findUnique: vi.fn(),
-      create: vi.fn(),
-    },
-    order: {
-      findFirst: vi.fn(),
-      findUnique: vi.fn(),
-      update: vi.fn(),
-      updateMany: vi.fn(),
-    },
-    product: {
-      updateMany: vi.fn(),
-    },
-  },
-}));
 
 describe("parsePaypalEvent", () => {
   it("should parse COMPLETED event", () => {
@@ -71,6 +49,49 @@ describe("parsePaypalEvent", () => {
     expect(result!.type).toBe("REFUNDED");
     expect(result!.refundId).toBe("refund-123");
     expect(result!.refundAmountUsd).toBe(50);
+  });
+
+  it("should parse DENIED event", () => {
+    const body = {
+      id: "WH-DENY-1",
+      event_type: "PAYMENT.CAPTURE.DENIED",
+      resource: {
+        id: "capture-denied-1",
+      },
+    };
+
+    const result = parsePaypalEvent(body);
+    expect(result).not.toBeNull();
+    expect(result!.type).toBe("DENIED");
+    expect(result!.captureId).toBe("capture-denied-1");
+  });
+
+  it("should parse REVERSED event", () => {
+    const body = {
+      id: "WH-REV-1",
+      event_type: "PAYMENT.CAPTURE.REVERSED",
+      resource: {
+        id: "capture-reversed-1",
+      },
+    };
+
+    const result = parsePaypalEvent(body);
+    expect(result).not.toBeNull();
+    expect(result!.type).toBe("REVERSED");
+  });
+
+  it("should parse PENDING event", () => {
+    const body = {
+      id: "WH-PEND-1",
+      event_type: "PAYMENT.CAPTURE.PENDING",
+      resource: {
+        id: "capture-pending-1",
+      },
+    };
+
+    const result = parsePaypalEvent(body);
+    expect(result).not.toBeNull();
+    expect(result!.type).toBe("PENDING");
   });
 
   it("should return null for invalid body", () => {
