@@ -12,6 +12,10 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Development scripts (not part of production build)
+    "scripts/**",
+    // Prisma seed (database setup script)
+    "prisma/seed.ts",
   ]),
 ]);
 
