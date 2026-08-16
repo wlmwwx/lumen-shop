@@ -1,5 +1,5 @@
 import "@testing-library/jest-dom/vitest";
-import { vi, beforeAll, afterAll } from "vitest";
+import { vi } from "vitest";
 
 // Mock next/navigation
 vi.mock("next/navigation", () => ({
@@ -27,7 +27,7 @@ vi.mock("next-intl", () => ({
 // Mock @/i18n/navigation
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ children, href }: { children: React.ReactNode; href: string }) => 
-    `<a href="${href}">${children}</a>`,
+    React.createElement("a", { href }, children),
   useRouter: () => ({
     push: vi.fn(),
     replace: vi.fn(),
@@ -46,20 +46,18 @@ vi.mock("next/headers", () => ({
 // Mock server-only modules
 vi.mock("server-only", () => ({}));
 
-// Suppress console.error for expected test scenarios
-const originalError = console.error;
-beforeAll(() => {
-  console.error = (...args) => {
-    if (
-      typeof args[0] === "string" &&
-      (args[0].includes("Warning:") || args[0].includes("React"))
-    ) {
-      return;
-    }
-    originalError.call(console, ...args);
-  };
-});
-
-afterAll(() => {
-  console.error = originalError;
-});
+// Mock localStorage for jsdom
+if (typeof globalThis.localStorage === "undefined") {
+  let store: Record<string, string> = {};
+  Object.defineProperty(globalThis, "localStorage", {
+    value: {
+      getItem: (key: string) => store[key] ?? null,
+      setItem: (key: string, value: string) => { store[key] = value; },
+      removeItem: (key: string) => { delete store[key]; },
+      clear: () => { store = {}; },
+      get length() { return Object.keys(store).length; },
+      key: (i: number) => Object.keys(store)[i] ?? null,
+    },
+    writable: true,
+  });
+}
