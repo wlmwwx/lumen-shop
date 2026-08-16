@@ -2,12 +2,13 @@
  * PayPal Webhook E2E 测试
  * 验证 webhook 处理逻辑与 Prisma 操作的集成
  */
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { parsePaypalEvent } from "@/lib/paypal-webhook-shared";
-import { prisma } from "@/lib/db";
+// Mock prisma for future integration tests
+// import { prisma } from "@/lib/db";
 
 // Mock prisma
-vi.mock("@/lib/db", () => ({
+// vi.mock("@/lib/db", () => ({
   prisma: {
     webhookEvent: {
       findUnique: vi.fn(),

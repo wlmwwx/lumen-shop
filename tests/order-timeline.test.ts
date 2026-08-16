@@ -100,6 +100,7 @@ describe("buildTimeline", () => {
       createMockEvent("SHIPPED", null, new Date("2024-01-01T11:00:00")),
     ];
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { eventByStatus, logistics } = buildTimeline({
       status: "SHIPPED",
       events,
@@ -157,6 +158,7 @@ describe("buildTimeline", () => {
   });
 
   it("should handle empty events", () => {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { eventByStatus, logistics } = buildTimeline({
       status: "PENDING",
       events: [],
