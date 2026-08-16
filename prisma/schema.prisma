@@ -3,21 +3,8 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
-}
-
-enum Role {
-  ADMIN
-  CUSTOMER
-}
-
-enum OrderStatus {
-  PENDING // 待支付
-  PAID // 已支付
-  SHIPPED // 已发货
-  COMPLETED // 已完成
-  CANCELLED // 已取消
 }
 
 model User {
@@ -67,7 +54,7 @@ model Product {
   compareAtPrice Float?
   currency       String        @default("CNY")
   stock          Int           @default(10)
-  images         String // JSON 数组字符串
+  images         String
   categoryId     String?
   category       Category?     @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   featured       Boolean       @default(false)
@@ -86,7 +73,7 @@ model Variant {
   id        String   @id @default(cuid())
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  name      String // 颜色 / 尺寸
+  name      String
   nameEn    String?
   value     String
   valueEn   String?
@@ -134,10 +121,10 @@ model Notification {
 
 model EmailLog {
   id        String   @id @default(cuid())
-  orderId   String   @unique // 一单一封，防止重复发送
+  orderId   String   @unique
   toEmail   String
   subject   String
-  body      String // HTML 模板正文
+  body      String
   createdAt DateTime @default(now())
 
   @@index([toEmail])
@@ -163,39 +150,22 @@ model Order {
   status         OrderStatus @default(PENDING)
   transactionId  String?
   paypalOrderId  String?
-  // PayPal 支付状态（webhook 同步）：COMPLETED / REFUNDED / PARTIALLY_REFUNDED / DENIED / REVERSED
-  paypalStatus   String?
-  // 最近一次退款交易号（PAYMENT.CAPTURE.REFUNDED 事件携带）
-  refundId       String?
   trackingNumber String?
   note           String?
   createdAt      DateTime    @default(now())
   updatedAt      DateTime    @updatedAt
   items          OrderItem[]
   events         OrderEvent[]
-  webhookEvents  WebhookEvent[]
 
   @@index([userId])
   @@index([status])
   @@index([createdAt])
 }
 
-// PayPal Webhook 事件日志（幂等去重：以 PayPal 事件 id 为主键）
-model WebhookEvent {
-  id        String   @id // PayPal 事件 id（如 WH-xxx）
-  type      String
-  orderId   String?
-  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
-  payload   String // 原始 JSON，便于排查
-  createdAt DateTime @default(now())
-
-  @@index([orderId])
-}
-
 model OrderItem {
-  id          String  @id @default(cuid())
+  id          String   @id @default(cuid())
   orderId     String
-  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order       Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId   String?
   product     Product? @relation(fields: [productId], references: [id], onDelete: SetNull)
   title       String
@@ -211,8 +181,21 @@ model OrderEvent {
   orderId   String
   order     Order       @relation(fields: [orderId], references: [id], onDelete: Cascade)
   status    OrderStatus
-  note      String?     // 物流轨迹备注（如 logShipped / logDelivered）
+  note      String?
   createdAt DateTime    @default(now())
 
   @@index([orderId])
+}
+
+enum Role {
+  ADMIN
+  CUSTOMER
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  COMPLETED
+  CANCELLED
 }
