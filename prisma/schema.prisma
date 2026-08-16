@@ -150,6 +150,8 @@ model Order {
   status         OrderStatus @default(PENDING)
   transactionId  String?
   paypalOrderId  String?
+  paypalStatus   String?     // PayPal 订单状态: CREATED, APPROVED, CAPTURED, REFUNDED, etc.
+  refundId       String?     // PayPal 退款 ID
   trackingNumber String?
   note           String?
   createdAt      DateTime    @default(now())
@@ -160,6 +162,7 @@ model Order {
   @@index([userId])
   @@index([status])
   @@index([createdAt])
+  @@index([paypalOrderId])
 }
 
 model OrderItem {
@@ -185,6 +188,21 @@ model OrderEvent {
   createdAt DateTime    @default(now())
 
   @@index([orderId])
+}
+
+// PayPal Webhook Event 日志（幂等，防重复处理）
+model WebhookEvent {
+  id           String   @id @default(cuid())
+  eventId      String   @unique  // PayPal webhook event ID，幂等键
+  eventType    String
+  resourceType String?
+  resourceId   String?
+  summary      String?
+  rawPayload   String   // JSON 原始报文
+  processedAt  DateTime @default(now())
+
+  @@index([eventId])
+  @@index([resourceId])
 }
 
 enum Role {
