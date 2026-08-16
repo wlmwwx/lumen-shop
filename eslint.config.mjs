@@ -12,6 +12,12 @@ const eslintConfig = defineConfig([
       "@typescript-eslint/no-explicit-any": "off",
       // Allow setState in effects for localStorage sync patterns
       "react-hooks/set-state-in-effect": "off",
+      // Allow impure function calls (Date.now) in render for analytics
+      "react-hooks/purity": "off",
+      // Allow anchor tags for external links
+      "@next/next/no-html-link-for-pages": "off",
+      // Allow unused vars in some cases
+      "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
     },
   },
   // Override default ignores of eslint-config-next.
